@@ -1,0 +1,94 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Save Link - LinkStash</title>
+    <link rel="stylesheet" href="save.css">
+</head>
+
+<body>
+    <div class="save-container">
+        <header class="header">
+            <div class="brand">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                        </path>
+                    </svg>
+                </div>
+                <h2>Save to LinkStash</h2>
+            </div>
+        </header>
+
+        <form id="save-form">
+            <div class="form-group">
+                <label for="url">URL</label>
+                <div class="input-wrapper">
+                    <input type="url" id="url" required readonly>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="title">Title</label>
+                <div class="input-wrapper">
+                    <input type="text" id="title" required>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="folder">
+                    Folder
+                    <span id="ai-status-folder" style="display:none; color:var(--accent, #8b5cf6); font-size:0.75rem; margin-left:8px;">✨ AI Suggesting...</span>
+                </label>
+                <div class="input-wrapper">
+                    <input type="text" id="folder" placeholder="e.g. Research, Inspiration..." list="folder-options"
+                        autocomplete="off">
+                    <datalist id="folder-options"></datalist>
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="tags">Tags <span class="muted">(comma separated)</span>
+                    <span id="ai-status-tags" style="display:none; color:var(--accent, #8b5cf6); font-size:0.75rem; margin-left:8px;">✨ AI Suggesting...</span>
+                </label>
+                <div class="input-wrapper">
+                    <input type="text" id="tags" placeholder="e.g. read-later, ai, design" autocomplete="off">
+                </div>
+            </div>
+
+            <div class="form-group">
+                <label for="note">Note</label>
+                <div class="input-wrapper">
+                    <textarea id="note" rows="3" placeholder="Add a personal note..." maxlength="300"></textarea>
+                </div>
+            </div>
+
+            <div class="actions">
+                <button type="button" id="cancel-btn" class="btn btn-secondary">Cancel</button>
+                <button type="submit" class="btn btn-primary" id="save-btn">
+                    Save Link
+                    <svg viewBox="0 0 24 24" fill="none" class="btn-icon" stroke="currentColor" stroke-width="2">
+                        <path d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </button>
+            </div>
+        </form>
+
+        <div id="success-overlay" class="hidden">
+            <div class="success-content">
+                <div class="success-icon">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M5 13l4 4L19 7"></path>
+                    </svg>
+                </div>
+                <h3>Saved Successfully!</h3>
+            </div>
+        </div>
+    </div>
+
+    <script type="module" src="save.js"></script>
+</body>
+
+</html>

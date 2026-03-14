@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Options - LinkStash</title>
+    <link rel="stylesheet" href="options.css">
+</head>
+
+<body>
+    <div class="options-container">
+        <header class="header">
+            <div class="brand">
+                <div class="logo">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
+                        </path>
+                    </svg>
+                </div>
+                <h2>LinkStash Settings</h2>
+            </div>
+        </header>
+
+        <div class="settings-card">
+            <h3>Account</h3>
+            <div class="account-info">
+                <div class="avatar">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M20 21v-2a4 4 0 00-4-4H8a4 4 0 00-4 4v2m8-10a4 4 0 100-8 4 4 0 000 8z"></path>
+                    </svg>
+                </div>
+                <div class="user-details">
+                    <p id="user-email">Not logged in</p>
+                    <span id="sync-status" class="status-badge offline">Sync Disabled</span>
+                </div>
+            </div>
+            <button id="logout-btn" class="btn btn-secondary mt-16 hidden">Log Out</button>
+            <button id="login-btn" class="btn btn-primary mt-16">Log In for Cloud Sync</button>
+        </div>
+
+        <div class="settings-card">
+            <h3>AI Categorization</h3>
+            <p class="description">LinkStash uses <strong>Gemini Flash 1.5</strong> via OpenRouter to auto-categorize your saved links. Enter your API key below.</p>
+            <div style="display: flex; gap: 12px; margin-bottom: 12px;">
+                <input type="password" id="api-key-input" placeholder="sk-or-v1-xxxxxxxxxxxxxxxxx" style="flex: 1;">
+                <button id="save-key-btn" class="btn btn-primary">Save Key</button>
+            </div>
+            <p id="key-status-msg" style="font-size: 0.85rem; color: var(--success); display: none;">Key saved securely!</p>
+            <div class="divider" style="margin: 16px 0;"></div>
+            <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent); font-size: 0.9rem; text-decoration: none;">&rarr; Get an OpenRouter API Key</a>
+        </div>
+
+        <div class="settings-card">
+            <h3>Data Management</h3>
+            <p class="description">Export your saved links backing up your collections. You can export as a spreadsheet
+                (CSV) or raw data (JSON).</p>
+
+            <div class="actions">
+                <button id="export-csv-btn" class="btn btn-secondary">
+                    <svg viewBox="0 0 24 24" fill="none" class="btn-icon" stroke="currentColor" stroke-width="2">
+                        <path
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z">
+                        </path>
+                    </svg>
+                    Export CSV
+                </button>
+                <button id="export-json-btn" class="btn btn-secondary">
+                    <svg viewBox="0 0 24 24" fill="none" class="btn-icon" stroke="currentColor" stroke-width="2">
+                        <path d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-4l-4 4m0 0l-4-4m4 4V4"></path>
+                    </svg>
+                    Export JSON
+                </button>
+            </div>
+        </div>
+
+    </div>
+
+    <script src="../lib/firebase-app.js"></script>
+    <script src="../lib/firebase-auth.js"></script>
+    <script src="../lib/firebase-firestore.js"></script>
+    <script type="module" src="options.js"></script>
+</body>
+
+</html>
