@@ -108,13 +108,16 @@ chrome.storage.onChanged.addListener((changes, namespace) => {
 });
 
 // ─── Context Menu ────────────────────────────────────────────────────────────
-chrome.runtime.onInstalled.addListener(() => {
+chrome.runtime.onInstalled.addListener(({ reason }) => {
     chrome.contextMenus.create({
         id: "save-to-linkstash",
         title: "Save to LinkStash",
         contexts: ["page", "link"]
     });
-    chrome.tabs.create({ url: chrome.runtime.getURL("onboarding/onboarding.html") });
+
+    if (reason === 'install') {
+        chrome.tabs.create({ url: 'onboarding/onboarding.html' });
+    }
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {

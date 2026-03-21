@@ -1,102 +1,146 @@
 import { auth } from '../js/firebase-config.js';
 
+let currentScreenIndex = 0;
+const screens = ['welcome', 'signin', 'permissions', 'tour', 'first-save'];
+
 document.addEventListener('DOMContentLoaded', () => {
-    // Check if already logged in -> redirect or close (if opened as tab)
+    // Initial State Check
     auth.onAuthStateChanged(user => {
         if (user) {
-            window.close(); // Close onboarding tab since we are logged in
-            // If it's the popup, we'd route to main popup, but we assume
-            // this page is opened in a full tab on startup
+            // If already logged in, check if we need permissions or just go to tour/dashboard
+            checkPermissions().then(hasPermissions => {
+                if (hasPermissions) {
+                    showScreen('tour');
+                } else {
+                    showScreen('permissions');
+                }
+            });
         }
     });
 
-    setupTabs();
-    setupForms();
+    setupEventListeners();
 });
 
-function setupTabs() {
-    const tabs = document.querySelectorAll('.tab-btn');
-    tabs.forEach(tab => {
-        tab.addEventListener('click', () => {
-            // Update active tab buttons
-            tabs.forEach(t => t.classList.remove('active'));
-            tab.classList.add('active');
-
-            // Update active forms
-            const targetId = tab.dataset.target;
-            document.querySelectorAll('.auth-form').forEach(f => f.classList.remove('active'));
-            document.getElementById(`${targetId}-form`).classList.add('active');
-
-            hideError();
-        });
-    });
+function showScreen(screenId) {
+    const screenIndex = screens.indexOf(screenId);
+    if (screenIndex === -1) return;
+    
+    currentScreenIndex = screenIndex;
+    
+    // Hide all screens
+    document.querySelectorAll('.onboarding-screen').forEach(s => s.classList.remove('active'));
+    
+    // Show target screen
+    const target = document.getElementById(`screen-${screenId}`);
+    if (target) {
+        target.classList.add('active');
+        updateProgressBar(screenIndex);
+    }
 }
 
-function setupForms() {
-    const loginForm = document.getElementById('login-form');
-    const registerForm = document.getElementById('register-form');
-    const googleBtn = document.getElementById('google-login-btn');
+function updateProgressBar(index) {
+    const progress = ((index + 1) / screens.length) * 100;
+    document.getElementById('progress-bar').style.width = `${progress}%`;
+}
 
-    loginForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('login-btn');
-        btn.disabled = true;
-        btn.textContent = 'Logging in...';
+function setupEventListeners() {
+    // Screen 1 -> 2
+    document.getElementById('get-started-btn').addEventListener('click', () => showScreen('signin'));
 
+    // Screen 2: Google Login
+    document.getElementById('google-login-btn').addEventListener('click', async () => {
+        const provider = new firebase.auth.GoogleAuthProvider();
+        const errorEl = document.getElementById('error-msg');
+        
         try {
-            const email = document.getElementById('login-email').value;
-            const pass = document.getElementById('login-password').value;
-            await auth.signInWithEmailAndPassword(email, pass);
-        } catch (err) {
-            showError(err.message);
-            btn.disabled = false;
-            btn.textContent = 'Log In';
-        }
-    });
-
-    registerForm.addEventListener('submit', async (e) => {
-        e.preventDefault();
-        const btn = document.getElementById('register-btn');
-        btn.disabled = true;
-        btn.textContent = 'Creating...';
-
-        try {
-            const email = document.getElementById('register-email').value;
-            const pass = document.getElementById('register-password').value;
-            await auth.createUserWithEmailAndPassword(email, pass);
-        } catch (err) {
-            showError(err.message);
-            btn.disabled = false;
-            btn.textContent = 'Create Account';
-        }
-    });
-
-    googleBtn.addEventListener('click', async () => {
-        try {
-            // For Chrome MV3 extensions, signInWithPopup often fails. 
-            // We will attempt signInWithPopup and if it blocks, provide a fallback alert asking user 
-            // to configure chrome.identity. 
-            // Usually passing a specific provider works if domains are authorized.
-            const provider = new firebase.auth.GoogleAuthProvider();
             await auth.signInWithPopup(provider);
+            // onAuthStateChanged will handle the transition
         } catch (err) {
             console.error(err);
-            if (err.code === 'auth/operation-not-supported-in-this-environment' || err.code === 'auth/popup-closed-by-user') {
-                showError("Google popup blocked or not supported in this extension context without advanced config. Please use Email/Password.");
-            } else {
-                showError(err.message);
-            }
+            errorEl.textContent = `Error: ${err.message}. If the popup was blocked, please allow it and try again.`;
+            errorEl.classList.remove('hidden');
         }
+    });
+
+    // Screen 3: Permissions
+    document.getElementById('allow-btn').addEventListener('click', async () => {
+        try {
+            const granted = await chrome.permissions.request({
+                permissions: ['activeTab', 'contextMenus']
+            });
+            
+            if (granted) {
+                showScreen('tour');
+            } else {
+                alert("LinkStash works best with these permissions. You can still continue, but some features may be limited.");
+                showScreen('tour');
+            }
+        } catch (err) {
+            console.error("Permission request error:", err);
+            showScreen('tour');
+        }
+    });
+
+    // Screen 4: Tour Navigation
+    let currentSlide = 0;
+    const slides = document.querySelectorAll('.slide');
+    const dots = document.querySelectorAll('.dot');
+    const prevBtn = document.getElementById('prev-btn');
+    const nextBtn = document.getElementById('next-btn');
+    const finishBtn = document.getElementById('finish-btn');
+
+    function updateSlides() {
+        slides.forEach((s, i) => s.classList.toggle('active', i === currentSlide));
+        dots.forEach((d, i) => d.classList.toggle('active', i === currentSlide));
+        
+        prevBtn.classList.toggle('hidden', currentSlide === 0);
+        nextBtn.classList.toggle('hidden', currentSlide === slides.length - 1);
+        finishBtn.classList.toggle('hidden', currentSlide !== slides.length - 1);
+    }
+
+    nextBtn.addEventListener('click', () => {
+        if (currentSlide < slides.length - 1) {
+            currentSlide++;
+            updateSlides();
+        }
+    });
+
+    prevBtn.addEventListener('click', () => {
+        if (currentSlide > 0) {
+            currentSlide--;
+            updateSlides();
+        }
+    });
+
+    document.getElementById('skip-tour-btn').addEventListener('click', () => showScreen('first-save'));
+    finishBtn.addEventListener('click', () => showScreen('first-save'));
+
+    // Screen 5: First Save
+    document.getElementById('save-current-btn').addEventListener('click', async () => {
+        const [tab] = await chrome.tabs.query({ active: true, currentWindow: true });
+        if (tab) {
+            const urlParams = new URLSearchParams({ 
+                url: tab.url, 
+                title: tab.title,
+                source: 'onboarding' 
+            }).toString();
+            
+            // Redirect to save flow
+            window.location.href = `../save/save.html?${urlParams}`;
+        } else {
+            window.location.href = '../options/options.html';
+        }
+    });
+
+    document.getElementById('skip-final-btn').addEventListener('click', () => {
+        window.location.href = '../options/options.html';
     });
 }
 
-function showError(msg) {
-    const errEl = document.getElementById('error-msg');
-    errEl.textContent = msg;
-    errEl.classList.remove('hidden');
-}
-
-function hideError() {
-    const errEl = document.getElementById('error-msg');
-    errEl.classList.add('hidden');
+async function checkPermissions() {
+    return new Promise(resolve => {
+        chrome.permissions.contains({
+            permissions: ['activeTab', 'contextMenus']
+        }, resolve);
+    });
 }

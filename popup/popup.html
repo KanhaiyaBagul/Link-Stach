@@ -1,94 +1,106 @@
 <!DOCTYPE html>
 <html lang="en">
-
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LinkStash</title>
     <link rel="stylesheet" href="popup.css">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
 </head>
 
-<body>
-    <div class="layout">
-        <aside class="sidebar">
-            <div class="brand">
-                <div class="logo">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path
-                            d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10">
-                        </path>
-                    </svg>
-                </div>
-                <h1>LinkStash</h1>
-            </div>
-
-            <nav class="nav-menu">
-                <div class="nav-item active" data-filter="all">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path
-                            d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6">
-                        </path>
-                    </svg>
-                    All Links
-                </div>
-            </nav>
-
-            <div class="sidebar-section">
-                <div style="display: flex; justify-content: space-between; align-items: center; padding-right: 8px;">
-                    <h3>Folders</h3>
-                    <button id="share-folder-btn" title="Share Selected Folder" style="background: none; border: none; color: var(--text-muted); cursor: pointer; display: none;">
-                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" style="width: 14px; height: 14px;"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4-4 4m4-4v13"></path></svg>
-                    </button>
-                </div>
-                <div id="folder-list" class="scrollable-list">
-                    <!-- Folders injected here -->
-                </div>
-            </div>
-
-            <div class="sidebar-section">
-                <h3>Tags</h3>
-                <div id="tag-list" class="tag-cloud">
-                    <!-- Tags injected here -->
-                </div>
-            </div>
-        </aside>
-
-        <main class="content">
-            <header class="topbar">
-                <div class="search-container">
-                    <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
-                    </svg>
-                    <input type="text" id="search-input" placeholder="Search links, tags, notes...">
-                </div>
-                <button class="icon-btn" id="save-current-btn" title="Save Current Tab"
-                    style="color: var(--accent); border-color: var(--border-focus);">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path d="M12 4v16m8-8H4"></path>
-                    </svg>
-                </button>
-                <button class="icon-btn" id="settings-btn" title="Settings">
-                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-                        <path
-                            d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z">
-                        </path>
-                        <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
-                    </svg>
-                </button>
-            </header>
-
-            <div id="empty-state" class="empty-state hidden">
-                <div class="empty-icon">📭</div>
-                <h2>No links found</h2>
-                <p>Save some links or try a different search.</p>
-            </div>
-
-            <div class="link-container" id="link-list">
-                <!-- Links injected here -->
-            </div>
-        </main>
+<body class="dark-theme">
+    <!-- Loading State -->
+    <div id="loading-view" class="view">
+        <div class="spinner"></div>
     </div>
 
+    <!-- Auth / Unauthenticated State -->
+    <div id="auth-view" class="view hidden">
+        <div class="auth-card">
+            <img src="../assets/icon128.png" alt="LinkStash" class="logo">
+            <h1>LinkStash</h1>
+            <p>Sign in to start saving and organizing your links with AI.</p>
+            <button id="open-onboarding-btn" class="cta-btn primary">Open sign-in page</button>
+            <p class="note">Nested popups are blocked by Chrome, so we'll open a secure tab for you.</p>
+        </div>
+    </div>
+
+    <!-- Main Application State (Authenticated) -->
+    <div id="main-view" class="view hidden">
+        <div class="layout">
+            <aside class="sidebar">
+                <div class="brand">
+                    <div class="logo-small">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M19 11H5m14 0a2 2 0 012 2v6a2 2 0 01-2 2H5a2 2 0 01-2-2v-6a2 2 0 012-2m14 0V9a2 2 0 00-2-2M5 11V9a2 2 0 002-2m0 0V5a2 2 0 012-2h6a2 2 0 012 2v2M7 7h10"></path>
+                        </svg>
+                    </div>
+                    <h1>LinkStash</h1>
+                </div>
+
+                <nav class="nav-menu">
+                    <div class="nav-item active" data-filter="all">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M3 12l2-2m0 0l7-7 7 7M5 10v10a1 1 0 001 1h3m10-11l2 2m-2-2v10a1 1 0 01-1 1h-3m-6 0a1 1 0 001-1v-4a1 1 0 011-1h2a1 1 0 011 1v4a1 1 0 001 1m-6 0h6"></path>
+                        </svg>
+                        All Links
+                    </div>
+                </nav>
+
+                <div class="sidebar-section">
+                    <div class="section-header">
+                        <h3>Folders</h3>
+                        <button id="share-folder-btn" class="icon-btn-tiny hidden">
+                            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 12v8a2 2 0 002 2h12a2 2 0 002-2v-8m-4-6l-4-4-4 4m4-4v13"></path></svg>
+                        </button>
+                    </div>
+                    <div id="folder-list" class="scrollable-list"></div>
+                </div>
+
+                <div class="sidebar-section">
+                    <h3>Tags</h3>
+                    <div id="tag-list" class="tag-cloud"></div>
+                </div>
+            </aside>
+
+            <main class="content">
+                <header class="topbar">
+                    <div class="search-container">
+                        <svg class="search-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"></path>
+                        </svg>
+                        <input type="text" id="search-input" placeholder="Search links...">
+                    </div>
+                    <button class="icon-btn primary" id="save-btn" title="Save Current Tab">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M12 4v16m8-8H4"></path>
+                        </svg>
+                    </button>
+                    <button class="icon-btn" id="settings-dashboard-btn" title="Dashboard">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                            <path d="M10.325 4.317c.426-1.756 2.924-1.756 3.35 0a1.724 1.724 0 002.573 1.066c1.543-.94 3.31.826 2.37 2.37a1.724 1.724 0 001.065 2.572c1.756.426 1.756 2.924 0 3.35a1.724 1.724 0 00-1.066 2.573c.94 1.543-.826 3.31-2.37 2.37a1.724 1.724 0 00-2.572 1.065c-.426 1.756-2.924 1.756-3.35 0a1.724 1.724 0 00-2.573-1.066c-1.543.94-3.31-.826-2.37-2.37a1.724 1.724 0 00-1.065-2.572c-1.756-.426-1.756-2.924 0-3.35a1.724 1.724 0 001.066-2.573c-.94-1.543.826-3.31 2.37-2.37.996.608 2.296.07 2.572-1.065z"></path>
+                            <path d="M15 12a3 3 0 11-6 0 3 3 0 016 0z"></path>
+                        </svg>
+                    </button>
+                </header>
+
+                <div id="empty-state" class="empty-state hidden">
+                    <div class="empty-icon">📭</div>
+                    <h2>No links found</h2>
+                    <p>Start stashing your favorites.</p>
+                </div>
+
+                <div class="link-container" id="link-list"></div>
+            </main>
+        </div>
+    </div>
+
+    <!-- Firebase SDKs -->
+    <script src="../lib/firebase-app.js"></script>
+    <script src="../lib/firebase-auth.js"></script>
+    <script src="../lib/firebase-firestore.js"></script>
     <script type="module" src="popup.js"></script>
 </body>
-
 </html>

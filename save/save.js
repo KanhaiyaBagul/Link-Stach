@@ -74,7 +74,11 @@ document.addEventListener('DOMContentLoaded', async () => {
             // Show success
             document.getElementById('success-overlay').classList.remove('hidden');
             setTimeout(() => {
-                window.close(); // Close the popup/window after success
+                if (params.get('source') === 'onboarding') {
+                    window.location.href = '../options/options.html';
+                } else {
+                    window.close(); // Close the popup/window after success
+                }
             }, 1200);
 
         } catch (err) {
