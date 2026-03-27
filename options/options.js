@@ -65,6 +65,56 @@ function setupExportListeners() {
         const dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join('\n'));
         downloadFile(dataStr, "linkstash-export.csv");
     });
+
+    // ─── Import Logic ──────────────────────────────────────────────
+    const importBtn = document.getElementById('import-json-btn');
+    const fileInput = document.getElementById('import-file-input');
+
+    if (importBtn && fileInput) {
+        importBtn.addEventListener('click', () => fileInput.click());
+
+        fileInput.addEventListener('change', async (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = async (event) => {
+                try {
+                    const importedLinks = JSON.parse(event.target.result);
+                    if (!Array.isArray(importedLinks)) {
+                        throw new Error("Invalid format: expected an array of links.");
+                    }
+
+                    const currentLinks = await Storage.getLinks();
+                    let count = 0;
+                    for (const link of importedLinks) {
+                        // Basic validation: must have a URL
+                        if (link.url) {
+                            // Avoid duplicates by checking URL
+                            const exists = currentLinks.some(l => l.url === link.url);
+                            if (!exists) {
+                                // saveLink handles ID generation and timestamping if missing
+                                await Storage.saveLink(link);
+                                count++;
+                            }
+                        }
+                    }
+
+                    if (count > 0) {
+                        alert(`Successfully imported ${count} new links!`);
+                    } else {
+                        alert("No new links were found to import.");
+                    }
+                    // Reset file input so same file can be selected again
+                    fileInput.value = '';
+                } catch (err) {
+                    console.error("Import error:", err);
+                    alert("Failed to import links. Please ensure the file is a valid LinkStash JSON export.");
+                }
+            };
+            reader.readAsText(file);
+        });
+    }
 }
 
 function downloadFile(dataStr, filename) {
