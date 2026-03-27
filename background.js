@@ -151,3 +151,28 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 });
+
+// ─── Commands API (Keyboard Shortcuts) ───────────────────────────────────────
+chrome.commands.onCommand.addListener((command) => {
+    if (command === "save_link") {
+        chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+            if (tabs.length === 0) return;
+            const tab = tabs[0];
+            const targetUrl = tab.url;
+            const targetTitle = tab.title || "Unknown Title";
+            const urlParams = new URLSearchParams({ url: targetUrl, title: targetTitle }).toString();
+            chrome.windows.create({
+                url: `save/save.html?${urlParams}`,
+                type: "popup",
+                width: 400,
+                height: 600
+            });
+        });
+    } else if (command === "open_options") {
+        if (chrome.runtime.openOptionsPage) {
+            chrome.runtime.openOptionsPage();
+        } else {
+            window.open(chrome.runtime.getURL("options/options.html"));
+        }
+    }
+});

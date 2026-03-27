@@ -20,6 +20,29 @@
   "background": {
     "service_worker": "background.js"
   },
+  "commands": {
+    "save_link": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+S",
+        "mac": "MacCtrl+Shift+S"
+      },
+      "description": "Save current tab to LinkStash"
+    },
+    "_execute_action": {
+      "suggested_key": {
+        "default": "Ctrl+Shift+L",
+        "mac": "MacCtrl+Shift+L"
+      },
+      "description": "Open LinkStash to search and view links"
+    },
+    "open_options": {
+      "suggested_key": {
+        "default": "Alt+Shift+O",
+        "mac": "Alt+Shift+O"
+      },
+      "description": "Open LinkStash Options/Settings"
+    }
+  },
   "action": {
     "default_popup": "popup/popup.html",
     "default_icon": {
@@ -32,5 +55,6 @@
     "16": "assets/icon16.png",
     "48": "assets/icon48.png",
     "128": "assets/icon128.png"
-  }
+  },
+  "options_page": "options/options.html"
 }
