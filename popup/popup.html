@@ -88,6 +88,51 @@
         </main>
     </div>
 
+    <!-- Edit Link Modal -->
+    <div id="edit-modal" class="modal-overlay hidden">
+        <div class="modal-card">
+            <div class="modal-header">
+                <h2>Edit Link</h2>
+                <button id="edit-modal-close" class="modal-close-btn" title="Close">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                        <path d="M6 18L18 6M6 6l12 12"></path>
+                    </svg>
+                </button>
+            </div>
+            <form id="edit-form">
+                <input type="hidden" id="edit-link-id">
+                <div class="modal-form-group">
+                    <label for="edit-title">Title</label>
+                    <input type="text" id="edit-title" required>
+                </div>
+                <div class="modal-form-group">
+                    <label for="edit-folder">Folder</label>
+                    <input type="text" id="edit-folder" placeholder="e.g. Research, Inspiration..."
+                        list="edit-folder-options" autocomplete="off">
+                    <datalist id="edit-folder-options"></datalist>
+                </div>
+                <div class="modal-form-group">
+                    <label for="edit-tags">Tags <span class="muted">(comma separated)</span></label>
+                    <input type="text" id="edit-tags" placeholder="e.g. read-later, ai, design" autocomplete="off">
+                </div>
+                <div class="modal-form-group">
+                    <label for="edit-notes">Note</label>
+                    <textarea id="edit-notes" rows="3" placeholder="Add a personal note..." maxlength="300"></textarea>
+                </div>
+                <div class="modal-actions">
+                    <button type="button" id="edit-cancel-btn" class="modal-btn modal-btn-secondary">Cancel</button>
+                    <button type="submit" class="modal-btn modal-btn-primary" id="edit-save-btn">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"
+                            style="width:16px;height:16px;">
+                            <path d="M5 13l4 4L19 7"></path>
+                        </svg>
+                        Save Changes
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+
     <script type="module" src="popup.js"></script>
 </body>
 
