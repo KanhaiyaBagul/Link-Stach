@@ -281,14 +281,29 @@ body {
   text-overflow: ellipsis;
 }
 .link-note {
-  font-size: 0.85rem;
+  font-size: 0.82rem;
   color: var(--text-secondary);
-  font-style: italic;
-  margin-top: 4px;
+  line-height: 1.5;
+  margin-top: 8px;
+  padding: 8px 12px;
+  background: rgba(255, 255, 255, 0.03);
+  border-left: 2px solid var(--accent);
+  border-radius: 4px;
   display: -webkit-box;
-  -webkit-line-clamp: 2;
+  -webkit-line-clamp: 3;
+  line-clamp: 3;
   -webkit-box-orient: vertical;
   overflow: hidden;
+  position: relative;
+}
+.link-note::before {
+  content: '"';
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  opacity: 0.2;
+  font-family: serif;
+  font-size: 1.5rem;
 }
 
 .link-meta {
