@@ -1,7 +1,7 @@
 {
   "name": "LinkStash",
   "version": "1.0.0",
-  "description": "Save, organize, and find any link instantly — powered by AI",
+  "description": "Save, organize, and find any link instantly",
   "manifest_version": 3,
   "permissions": [
     "activeTab",
@@ -15,8 +15,7 @@
     "https://*.firebaseapp.com/*",
     "https://identitytoolkit.googleapis.com/*",
     "https://securetoken.googleapis.com/*",
-    "https://firestore.googleapis.com/*",
-    "https://openrouter.ai/*"
+    "https://firestore.googleapis.com/*"
   ],
   "background": {
     "service_worker": "background.js"

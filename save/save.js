@@ -1,5 +1,4 @@
 import Storage from '../js/storage.js';
-import { suggestCategorization } from '../js/ai.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Populate initial data (folder datalist)
@@ -20,7 +19,6 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Opened from background right-click
         urlInput.value = params.get('url');
         titleInput.value = params.get('title');
-        await triggerAI(urlInput.value, titleInput.value);
     } else {
         // Opened via toolbar popup (if we set it to default_popup or change behavior)
         chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
@@ -29,7 +27,6 @@ document.addEventListener('DOMContentLoaded', async () => {
                 const title = tabs[0].title || '';
                 urlInput.value = url;
                 titleInput.value = title;
-                await triggerAI(title, url);
             }
         });
     }
@@ -91,43 +88,3 @@ document.addEventListener('DOMContentLoaded', async () => {
     });
 });
 
-async function triggerAI(title, url) {
-   if (!title || !url) return;
-   
-   const folderLabel = document.getElementById('ai-status-folder');
-   const tagsLabel = document.getElementById('ai-status-tags');
-   const folderInput = document.getElementById('folder');
-   const tagsInput = document.getElementById('tags');
-   
-   // Show loading
-   folderLabel.style.display = 'inline-block';
-   tagsLabel.style.display = 'inline-block';
-   
-   const aiResult = await suggestCategorization(title, url);
-   
-   // Hide loading
-   if (aiResult) {
-      if (!folderInput.value && aiResult.folder) {
-         folderInput.value = aiResult.folder;
-         folderLabel.innerHTML = '✨ AI Suggested';
-      } else {
-         folderLabel.style.display = 'none';
-      }
-      
-      if (!tagsInput.value && aiResult.tags && aiResult.tags.length > 0) {
-         tagsInput.value = aiResult.tags.join(', ');
-         tagsLabel.innerHTML = '✨ AI Suggested';
-      } else {
-         tagsLabel.style.display = 'none';
-      }
-      
-      // Clear badges after a few seconds
-      setTimeout(() => {
-         folderLabel.style.display = 'none';
-         tagsLabel.style.display = 'none';
-      }, 5000);
-   } else {
-      folderLabel.style.display = 'none';
-      tagsLabel.style.display = 'none';
-   }
-}
