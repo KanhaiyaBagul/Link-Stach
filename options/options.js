@@ -38,22 +38,6 @@ function setupAuthListener() {
 }
 
 function setupExportListeners() {
-    // Load existing API Key
-    chrome.storage.local.get("openRouterKey", (res) => {
-        if (res.openRouterKey) {
-            document.getElementById('api-key-input').value = res.openRouterKey;
-        }
-    });
-
-    // Save API Key
-    document.getElementById('save-key-btn').addEventListener('click', () => {
-        const val = document.getElementById('api-key-input').value.trim();
-        chrome.storage.local.set({ openRouterKey: val }, () => {
-            const msg = document.getElementById('key-status-msg');
-            msg.style.display = 'block';
-            setTimeout(() => msg.style.display = 'none', 3000);
-        });
-    });
 
     document.getElementById('export-json-btn').addEventListener('click', async () => {
         const links = await Storage.getLinks();
