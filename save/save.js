@@ -19,6 +19,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         // Opened from background right-click
         urlInput.value = params.get('url');
         titleInput.value = params.get('title');
+        checkDuplicate(urlInput.value);
     } else {
         // Opened via toolbar popup
         chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
@@ -30,7 +31,31 @@ document.addEventListener('DOMContentLoaded', async () => {
             }
             urlInput.value = url;
             titleInput.value = title;
+            checkDuplicate(url);
         });
+    }
+
+    // Duplicate check on input
+    urlInput.addEventListener('input', (e) => {
+        checkDuplicate(e.target.value.trim());
+    });
+
+    async function checkDuplicate(url) {
+        const warning = document.getElementById('duplicate-warning');
+        const saveBtn = document.getElementById('save-btn');
+        const isDup = await Storage.isDuplicate(url);
+        
+        if (isDup) {
+            warning.classList.remove('hidden');
+            saveBtn.disabled = true;
+            saveBtn.style.opacity = '0.5';
+            saveBtn.style.cursor = 'not-allowed';
+        } else {
+            warning.classList.add('hidden');
+            saveBtn.disabled = false;
+            saveBtn.style.opacity = '1';
+            saveBtn.style.cursor = 'pointer';
+        }
     }
 
     // 3. Handle Form Submission

@@ -5,6 +5,23 @@ const Storage = {
         return (data.links || []).sort((a, b) => b.createdAt - a.createdAt);
     },
 
+    async isDuplicate(url) {
+        if (!url) return false;
+        try {
+            const normalizedUrl = new URL(url).href;
+            const links = await this.getLinks();
+            return links.some(link => {
+                try {
+                    return new URL(link.url).href === normalizedUrl;
+                } catch (e) {
+                    return link.url === url;
+                }
+            });
+        } catch (e) {
+            return false;
+        }
+    },
+
     async saveLink(link) {
         const links = await this.getLinks();
         link.id = link.id || crypto.randomUUID();
