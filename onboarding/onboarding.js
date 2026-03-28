@@ -1,12 +1,10 @@
 import { auth } from '../js/firebase-config.js';
 
-document.addEventListener('DOMContentLoaded', () => {
-    // Check if already logged in -> redirect or close (if opened as tab)
+document.addEventListener('DOMContentLoaded', async () => {
+    // Check if already logged in
     auth.onAuthStateChanged(user => {
         if (user) {
             window.close(); // Close onboarding tab since we are logged in
-            // If it's the popup, we'd route to main popup, but we assume
-            // this page is opened in a full tab on startup
         }
     });
 
@@ -73,19 +71,21 @@ function setupForms() {
 
     googleBtn.addEventListener('click', async () => {
         try {
-            // For Chrome MV3 extensions, signInWithPopup often fails. 
-            // We will attempt signInWithPopup and if it blocks, provide a fallback alert asking user 
-            // to configure chrome.identity. 
-            // Usually passing a specific provider works if domains are authorized.
-            const provider = new firebase.auth.GoogleAuthProvider();
-            await auth.signInWithPopup(provider);
+            console.log("Starting offscreen Google login...");
+            // Send message to background to handle auth via offscreen doc
+            chrome.runtime.sendMessage({ action: "signInWithGoogle" }, (response) => {
+                if (response && response.success) {
+                    console.log("Offscreen login success!");
+                    // onAuthStateChanged will naturally fire and close the tab
+                } else {
+                    const errorMsg = response ? response.error : "Unknown error";
+                    console.error("Auth Bridge error:", errorMsg);
+                    showError(`Auth failed: ${errorMsg}`);
+                }
+            });
         } catch (err) {
-            console.error(err);
-            if (err.code === 'auth/operation-not-supported-in-this-environment' || err.code === 'auth/popup-closed-by-user') {
-                showError("Google popup blocked or not supported in this extension context without advanced config. Please use Email/Password.");
-            } else {
-                showError(err.message);
-            }
+            console.error("Bridge Communication Error:", err);
+            showError(`Error starting authentication: ${err.message}`);
         }
     });
 }

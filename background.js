@@ -130,8 +130,55 @@ chrome.contextMenus.onClicked.addListener((info, tab) => {
     }
 });
 
-// ─── Share Folder Message ────────────────────────────────────────────────────
+// ─── Google Auth via chrome.identity (works on Chrome, Edge, Brave) ─────────
+const GOOGLE_CLIENT_ID = '344277938908-le7t8f5rd2ofu49bv0jn3j3jvumgn12q.apps.googleusercontent.com';
+const GOOGLE_SCOPES   = 'https://www.googleapis.com/auth/userinfo.email https://www.googleapis.com/auth/userinfo.profile openid';
+
 chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
+    if (request.action === "signInWithGoogle") {
+        const redirectUri = `https://${chrome.runtime.id}.chromiumapp.org/`;
+        const authUrl = 'https://accounts.google.com/o/oauth2/auth?' + new URLSearchParams({
+            client_id:     GOOGLE_CLIENT_ID,
+            response_type: 'token',
+            redirect_uri:  redirectUri,
+            scope:         GOOGLE_SCOPES
+        }).toString();
+
+        chrome.identity.launchWebAuthFlow(
+            { url: authUrl, interactive: true },
+            async (redirectUrl) => {
+                if (chrome.runtime.lastError || !redirectUrl) {
+                    const err = chrome.runtime.lastError?.message || 'Auth cancelled by user';
+                    console.error('launchWebAuthFlow error:', err);
+                    sendResponse({ success: false, error: err });
+                    return;
+                }
+
+                // Extract access_token from the redirect URL hash
+                const hash   = new URL(redirectUrl).hash.slice(1);
+                const params = new URLSearchParams(hash);
+                const accessToken = params.get('access_token');
+
+                if (!accessToken) {
+                    sendResponse({ success: false, error: 'No access token in redirect response' });
+                    return;
+                }
+
+                try {
+                    // Exchange token for Firebase credential
+                    const credential = firebase.auth.GoogleAuthProvider.credential(null, accessToken);
+                    const result     = await auth.signInWithCredential(credential);
+                    console.log('Firebase sign-in success:', result.user.email);
+                    sendResponse({ success: true, user: { uid: result.user.uid, email: result.user.email } });
+                } catch (err) {
+                    console.error('Firebase signInWithCredential error:', err);
+                    sendResponse({ success: false, error: err.message });
+                }
+            }
+        );
+        return true; // Keep the message channel open for async response
+    }
+
     if (request.action === "shareFolder") {
         const user = auth.currentUser;
         if (!user) {

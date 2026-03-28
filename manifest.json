@@ -1,14 +1,18 @@
 {
   "name": "LinkStash",
   "version": "1.0.0",
-  "description": "Save, organize, and find any link instantly — powered by AI",
+  "description": "Save, organize, and find any link instantly",
   "manifest_version": 3,
   "permissions": [
     "activeTab",
     "contextMenus",
     "storage",
-    "scripting"
+    "scripting",
+    "identity"
   ],
+  "content_security_policy": {
+    "extension_pages": "script-src 'self' 'wasm-unsafe-eval'; object-src 'self'; connect-src 'self' https://*.googleapis.com https://*.firebaseapp.com https://openrouter.ai;"
+  },
   "host_permissions": [
     "http://*/*",
     "https://*/*",
@@ -16,7 +20,14 @@
     "https://identitytoolkit.googleapis.com/*",
     "https://securetoken.googleapis.com/*",
     "https://firestore.googleapis.com/*",
-    "https://openrouter.ai/*"
+    "https://openrouter.ai/*",
+    "https://accounts.google.com/*"
+  ],
+  "web_accessible_resources": [
+    {
+      "resources": ["lib/*", "js/*"],
+      "matches": ["<all_urls>"]
+    }
   ],
   "background": {
     "service_worker": "background.js"
