@@ -9,7 +9,16 @@ let searchQuery = '';
 document.addEventListener('DOMContentLoaded', async () => {
     await loadData();
     setupEventListeners();
+    setupStorageListener();
 });
+
+function setupStorageListener() {
+    chrome.storage.onChanged.addListener((changes, namespace) => {
+        if (namespace === 'local' && (changes.links || changes.folders || changes.tags)) {
+            loadData();
+        }
+    });
+}
 
 async function loadData() {
     links = await Storage.getLinks();
