@@ -2,7 +2,7 @@
 
 ![LinkStash Hero](./assets/hero.png)
 
-### One-line description: Save, organize, and find any link instantly — powered by AI
+### One-line description: Save, organize, and find any link instantly
 
 - **Live Demo**: [https://link-stach.web.app](https://link-stach.web.app)
 - **Repo URL**: [https://github.com/KanhaiyaBagul/Link-Stach](https://github.com/KanhaiyaBagul/Link-Stach)
@@ -17,7 +17,6 @@
 | **Frontend** | HTML5, CSS3, JavaScript (Chrome Extension MV3) |
 | **Backend** | Firebase Auth, Firebase Cloud Messaging |
 | **Database** | Firebase Firestore |
-| **AI Engine** | OpenRouter API |
 | **Deployment** | Chrome Web Store, Firebase Hosting |
 
 ---
@@ -25,7 +24,7 @@
 ## 💡 Highlights
 
 ### 🔍 What problem does it solve?
-Most users struggle with a "bookmark graveyard"—hundreds of saved links that are never revisited because they aren't organized. LinkStash uses AI to automatically categorize and tag links as you save them, making them instantly discoverable later.
+Most users struggle with a "bookmark graveyard"—hundreds of saved links that are never revisited because they aren't organized. LinkStash allows you to quickly categorize and tag links as you save them, making them instantly discoverable later.
 
 ### ⚙️ One interesting technical challenge
 Implementing **Real-Time Cloud-Local Synchronization** in Manifest V3. Since service workers are ephemeral, we had to build a robust sync engine that handles state persistence between `chrome.storage.local` and Firestore, ensuring zero data loss and seamless offline support.
@@ -38,7 +37,6 @@ Generate unique, shareable URLs for entire folders of links. This allows users t
 ## ✨ Full Feature List
 
 - **One-Click Saving**: Context menu and popup triggers.
-- **AI Categorization**: Intelligent folder and tag suggestions.
 - **Cross-Device Sync**: Your links, everywhere you are.
 - **Smart Search**: Search by title, URL, tags, or folder content.
 - **Secure Auth**: Privacy-focused Google and Email sign-in via Firebase.

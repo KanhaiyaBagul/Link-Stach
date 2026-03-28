@@ -114,7 +114,6 @@ chrome.runtime.onInstalled.addListener(() => {
         title: "Save to LinkStash",
         contexts: ["page", "link"]
     });
-    chrome.tabs.create({ url: chrome.runtime.getURL("onboarding/onboarding.html") });
 });
 
 chrome.contextMenus.onClicked.addListener((info, tab) => {
