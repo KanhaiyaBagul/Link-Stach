@@ -12,10 +12,17 @@ document.addEventListener('DOMContentLoaded', async () => {
     setupStorageListener();
 });
 
+let _reloadTimer = null;
+
 function setupStorageListener() {
     chrome.storage.onChanged.addListener((changes, namespace) => {
         if (namespace === 'local' && (changes.links || changes.folders || changes.tags)) {
-            loadData();
+            // Debounce: wait 300ms after last change before re-rendering
+            // This prevents flickering when Firestore syncs many documents at once
+            clearTimeout(_reloadTimer);
+            _reloadTimer = setTimeout(() => {
+                loadData();
+            }, 300);
         }
     });
 }
