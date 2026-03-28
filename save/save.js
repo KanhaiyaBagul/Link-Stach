@@ -22,12 +22,14 @@ document.addEventListener('DOMContentLoaded', async () => {
     } else {
         // Opened via toolbar popup
         chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
+            let url = '';
+            let title = '';
             if (tabs && tabs[0]) {
-                const url = tabs[0].url || '';
-                const title = tabs[0].title || '';
-                urlInput.value = url;
-                titleInput.value = title;
+                url = tabs[0].url || '';
+                title = tabs[0].title || '';
             }
+            urlInput.value = url;
+            titleInput.value = title;
         });
     }
 

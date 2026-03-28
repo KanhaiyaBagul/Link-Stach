@@ -161,18 +161,19 @@ function setupEventListeners() {
     if (saveBtn) {
         saveBtn.addEventListener('click', () => {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
+                let url = '';
+                let title = '';
                 if (tabs && tabs[0]) {
-                    const urlParams = new URLSearchParams({
-                        url: tabs[0].url,
-                        title: tabs[0].title
-                    }).toString();
-                    chrome.windows.create({
-                        url: `save/save.html?${urlParams}`,
-                        type: "popup",
-                        width: 400,
-                        height: 600
-                    });
+                    url = tabs[0].url || '';
+                    title = tabs[0].title || '';
                 }
+                const urlParams = new URLSearchParams({ url, title }).toString();
+                chrome.windows.create({
+                    url: `save/save.html?${urlParams}`,
+                    type: "popup",
+                    width: 400,
+                    height: 600
+                });
             });
         });
     }
