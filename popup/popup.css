@@ -237,6 +237,35 @@ body {
   transform: translateY(-1px);
   box-shadow: 0 8px 24px -12px rgba(0,0,0,0.5);
 }
+.link-card.selectable {
+  padding-left: 44px;
+}
+.link-card.selectable::after {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 12px;
+  transform: translateY(-50%);
+  width: 20px;
+  height: 20px;
+  border: 2px solid var(--border);
+  border-radius: 4px;
+  transition: all 0.2s;
+}
+.link-card.selected {
+  border-color: var(--accent);
+  background: rgba(139, 92, 246, 0.05);
+}
+.link-card.selected::after {
+  background: var(--accent);
+  border-color: var(--accent);
+}
+.link-card.selected::before { opacity: 1; }
+.icon-btn.active {
+  background: var(--accent);
+  color: white;
+  border-color: var(--accent);
+}
 .link-card::before {
   content: '';
   position: absolute;
@@ -247,20 +276,51 @@ body {
 }
 .link-card:hover::before { opacity: 1; }
 
-.favicon {
-  width: 32px;
-  height: 32px;
+.link-preview {
+  width: 90px;
+  height: 60px;
   border-radius: 8px;
   background: var(--surface);
   display: flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--border);
 }
-.favicon img {
+.screenshot-thumb {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+.favicon {
+  position: absolute;
+  bottom: 4px;
+  right: 4px;
   width: 20px;
   height: 20px;
   border-radius: 4px;
+  background: var(--bg-sidebar);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: 0 2px 4px rgba(0,0,0,0.3);
+  z-index: 2;
+}
+.favicon img {
+  width: 14px;
+  height: 14px;
+  border-radius: 2px;
+}
+.no-screenshot .favicon {
+  position: static;
+  width: 32px;
+  height: 32px;
+}
+.no-screenshot .favicon img {
+  width: 20px;
+  height: 20px;
 }
 
 .link-details {
@@ -292,6 +352,7 @@ body {
   margin-top: 4px;
   display: -webkit-box;
   -webkit-line-clamp: 2;
+  line-clamp: 2;
   -webkit-box-orient: vertical;
   overflow: hidden;
 }
