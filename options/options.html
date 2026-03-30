@@ -61,6 +61,23 @@
                     Export JSON
                 </button>
             </div>
+
+            <hr class="mt-24 mb-24" style="border: 0; border-top: 1px solid rgba(255,255,255,0.1);">
+
+            <h4>Import from Browser</h4>
+            <p class="description">Already have a lot of bookmarks? Import them all into LinkStash with one click. We'll
+                keep your folder structure!</p>
+            <div class="actions">
+                <button id="import-bookmarks-btn" class="btn btn-primary">
+                    <svg viewBox="0 0 24 24" fill="none" class="btn-icon" stroke="currentColor" stroke-width="2">
+                        <path d="M4 17v2a2 2 0 002 2h12a2 2 0 002-2v-2m-4-7l-4 4m0 0l-4-4m4 4V3"></path>
+                    </svg>
+                    Import Google Bookmarks
+                </button>
+            </div>
+            <div id="import-status" class="mt-8 hidden" style="font-size: 14px; color: var(--accent);">
+                Importing... <span id="import-count">0</span> links processed.
+            </div>
         </div>
 
     </div>
