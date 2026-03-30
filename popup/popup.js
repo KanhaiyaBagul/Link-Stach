@@ -5,6 +5,8 @@ let folders = [];
 let tags = [];
 let currentFilter = { type: 'all', value: null };
 let searchQuery = '';
+let isSelectMode = false;
+let selectedLinkIds = new Set();
 
 document.addEventListener('DOMContentLoaded', async () => {
     await loadData();
@@ -17,8 +19,6 @@ let _reloadTimer = null;
 function setupStorageListener() {
     chrome.storage.onChanged.addListener((changes, namespace) => {
         if (namespace === 'local' && (changes.links || changes.folders || changes.tags)) {
-            // Debounce: wait 300ms after last change before re-rendering
-            // This prevents flickering when Firestore syncs many documents at once
             clearTimeout(_reloadTimer);
             _reloadTimer = setTimeout(() => {
                 loadData();
@@ -70,8 +70,6 @@ function renderTags() {
 
 function setFilter(type, value) {
     currentFilter = { type, value };
-
-    // Update UI selection
     document.querySelectorAll('.nav-item').forEach(el => {
         if (el.dataset.type === type && el.dataset.value === value) el.classList.add('active');
         else if (type === 'all' && el.dataset.filter === 'all') el.classList.add('active');
@@ -81,44 +79,27 @@ function setFilter(type, value) {
         if (type === 'tag' && el.textContent === value) el.classList.add('active');
         else el.classList.remove('active');
     });
-
-    // Toggle Share Button visibility
     const shareBtn = document.getElementById('share-folder-btn');
-    if (shareBtn) {
-        if (type === 'folder') {
-            shareBtn.style.display = 'block';
-        } else {
-            shareBtn.style.display = 'none';
-        }
-    }
-
+    if (shareBtn) shareBtn.style.display = type === 'folder' ? 'block' : 'none';
     renderLinks();
 }
 
 function renderLinks() {
     const container = document.getElementById('link-list');
     const emptyState = document.getElementById('empty-state');
-
     container.innerHTML = '';
 
-    // Filter links
     let filtered = links.filter(link => {
-        // 1. Sidebar filter
         if (currentFilter.type === 'folder' && link.folderId !== currentFilter.value) return false;
         if (currentFilter.type === 'tag' && !link.tags.includes(currentFilter.value)) return false;
-
-        // 2. Search query filter
         if (searchQuery) {
             const q = searchQuery.toLowerCase();
             const matchTitle = (link.title || '').toLowerCase().includes(q);
             const matchUrl = (link.url || '').toLowerCase().includes(q);
             const matchNote = (link.notes || '').toLowerCase().includes(q);
             const matchTag = link.tags.some(t => t.toLowerCase().includes(q));
-
             let folderName = folders.find(f => f.id === link.folderId)?.name.toLowerCase() || "";
-            const matchFolder = folderName.includes(q);
-
-            if (!matchTitle && !matchUrl && !matchNote && !matchTag && !matchFolder) return false;
+            if (!matchTitle && !matchUrl && !matchNote && !matchTag && !folderName.includes(q)) return false;
         }
         return true;
     });
@@ -132,13 +113,14 @@ function renderLinks() {
 
         filtered.forEach(link => {
             const card = document.createElement('div');
-            card.className = 'link-card';
-
+            card.className = `link-card ${selectedLinkIds.has(link.id) ? 'selected' : ''} ${isSelectMode ? 'selectable' : ''}`;
             const folderName = folders.find(f => f.id === link.folderId)?.name || '';
-
             card.innerHTML = `
-        <div class="favicon">
-          <img src="${escapeHtml(link.favicon)}" onerror="this.src='../assets/icon48.png'">
+        <div class="link-preview ${link.screenshot ? '' : 'no-screenshot'}">
+          ${link.screenshot ? `<img src="${link.screenshot}" class="screenshot-thumb">` : ''}
+          <div class="favicon">
+            <img src="${escapeHtml(link.favicon)}" onerror="this.src='../assets/icon48.png'">
+          </div>
         </div>
         <div class="link-details">
           <div class="link-title" title="${escapeHtml(link.title)}">${escapeHtml(link.title || link.url)}</div>
@@ -153,20 +135,18 @@ function renderLinks() {
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"></path></svg>
         </button>
       `;
-
             card.addEventListener('click', (e) => {
                 if (!e.target.closest('.delete-btn') && !e.target.closest('.tag')) {
-                    chrome.tabs.create({ url: link.url });
+                    if (isSelectMode) toggleSelection(link.id, card);
+                    else chrome.tabs.create({ url: link.url });
                 }
             });
-
             card.querySelector('.delete-btn').addEventListener('click', async (e) => {
                 e.stopPropagation();
                 await Storage.deleteLink(link.id);
                 links = links.filter(l => l.id !== link.id);
                 renderLinks();
             });
-
             container.appendChild(card);
         });
     }
@@ -177,88 +157,95 @@ function setupEventListeners() {
     if (saveBtn) {
         saveBtn.addEventListener('click', () => {
             chrome.tabs.query({ active: true, currentWindow: true }, (tabs) => {
-                let url = '';
-                let title = '';
                 if (tabs && tabs[0]) {
-                    url = tabs[0].url || '';
-                    title = tabs[0].title || '';
+                    const urlParams = new URLSearchParams({ url: tabs[0].url, title: tabs[0].title }).toString();
+                    chrome.windows.create({ url: `save/save.html?${urlParams}`, type: "popup", width: 400, height: 600 });
                 }
-                const urlParams = new URLSearchParams({ url, title }).toString();
-                chrome.windows.create({
-                    url: `save/save.html?${urlParams}`,
-                    type: "popup",
-                    width: 400,
-                    height: 600
-                });
             });
         });
     }
 
     const searchInput = document.getElementById('search-input');
-    searchInput.addEventListener('input', (e) => {
-        searchQuery = e.target.value.trim();
-        renderLinks();
-    });
+    searchInput.addEventListener('input', (e) => { searchQuery = e.target.value.trim(); renderLinks(); });
 
-    document.querySelector('[data-filter="all"]').addEventListener('click', () => {
-        setFilter('all', null);
-    });
+    document.querySelector('[data-filter="all"]').addEventListener('click', () => setFilter('all', null));
+    document.getElementById('settings-btn').addEventListener('click', () => chrome.tabs.create({ url: chrome.runtime.getURL("options/options.html") }));
 
-    document.getElementById('settings-btn').addEventListener('click', () => {
-        chrome.tabs.create({ url: chrome.runtime.getURL("options/options.html") });
-    });
+    const selectToggleBtn = document.getElementById('select-toggle-btn');
+    if (selectToggleBtn) {
+        selectToggleBtn.addEventListener('click', () => {
+            isSelectMode = !isSelectMode;
+            selectToggleBtn.classList.toggle('active', isSelectMode);
+            if (!isSelectMode) {
+                selectedLinkIds.clear();
+                const bdb = document.getElementById('batch-delete-btn');
+                if (bdb) bdb.style.display = 'none';
+            }
+            renderLinks();
+        });
+    }
+
+    const batchDeleteBtn = document.getElementById('batch-delete-btn');
+    if (batchDeleteBtn) {
+        batchDeleteBtn.addEventListener('click', async () => {
+            if (selectedLinkIds.size === 0) return;
+            if (confirm(`Delete ${selectedLinkIds.size} selected links?`)) {
+                for (const id of selectedLinkIds) await Storage.deleteLink(id);
+                selectedLinkIds.clear();
+                isSelectMode = false;
+                if (selectToggleBtn) selectToggleBtn.classList.remove('active');
+                batchDeleteBtn.style.display = 'none';
+                loadData();
+            }
+        });
+    }
 
     const shareBtn = document.getElementById('share-folder-btn');
     if (shareBtn) {
         shareBtn.addEventListener('click', async () => {
             if (currentFilter.type !== 'folder' || !currentFilter.value) return;
-            
-            shareBtn.disabled = true;
-            shareBtn.style.opacity = '0.5';
-            
+            shareBtn.disabled = true; shareBtn.style.opacity = '0.5';
             try {
-                // Get folder details and links
                 const folder = folders.find(f => f.id === currentFilter.value);
                 const folderLinks = links.filter(l => l.folderId === currentFilter.value);
-                
                 if (!folder) throw new Error("Folder not found");
-                
-                // We'd typically import db from firebase-config here, but since popup.html doesn't load it natively like options does right now,
-                // we will send a message to the background script to handle the actual Firestore write, ensuring we don't break popup JS execution.
-                chrome.runtime.sendMessage({
-                    action: "shareFolder",
-                    folderName: folder.name,
-                    links: folderLinks
-                }, (response) => {
+                chrome.runtime.sendMessage({ action: "shareFolder", folderName: folder.name, links: folderLinks }, (response) => {
                     if (response && response.success) {
                         const shareUrl = `https://link-stach.web.app/share/${response.shareId}`;
-                        navigator.clipboard.writeText(shareUrl).then(() => {
-                            alert(`Shared! Link copied to clipboard:\n${shareUrl}`);
-                        });
-                    } else {
-                        alert("Failed to share folder. Make sure you are logged in.");
-                    }
-                    shareBtn.disabled = false;
-                    shareBtn.style.opacity = '1';
+                        navigator.clipboard.writeText(shareUrl).then(() => alert(`Shared! Link copied to clipboard:\n${shareUrl}`));
+                    } else alert("Failed to share folder. Make sure you are logged in.");
+                    shareBtn.disabled = false; shareBtn.style.opacity = '1';
                 });
             } catch (e) {
                 console.error("Sharing error:", e);
-                shareBtn.disabled = false;
-                shareBtn.style.opacity = '1';
-                alert("Error preparing share link.");
+                shareBtn.disabled = false; shareBtn.style.opacity = '1';
             }
         });
     }
 }
 
-// Utility to prevent XSS
+function toggleSelection(id, cardEl) {
+    if (selectedLinkIds.has(id)) {
+        selectedLinkIds.delete(id);
+        cardEl.classList.remove('selected');
+    } else {
+        selectedLinkIds.add(id);
+        cardEl.classList.add('selected');
+    }
+    const batchDeleteBtn = document.getElementById('batch-delete-btn');
+    if (batchDeleteBtn) {
+        batchDeleteBtn.style.display = selectedLinkIds.size > 0 ? 'flex' : 'none';
+        const span = batchDeleteBtn.querySelector('span'); if (span) span.remove();
+        if (selectedLinkIds.size > 0) {
+            const count = document.createElement('span');
+            count.textContent = selectedLinkIds.size;
+            count.style.cssText = 'font-size: 12px; margin-left: 4px; font-weight: 700;';
+            batchDeleteBtn.appendChild(count);
+        }
+    }
+}
+
 function escapeHtml(unsafe) {
     if (!unsafe) return '';
-    return unsafe
-        .toString()
-        .replace(/&/g, "&amp;")
-        .replace(/</g, "&lt;")
-        .replace(/>/g, "&gt;")
-        .replace(/"/g, "&quot;")
-        .replace(/'/g, "&#039;");
+    return unsafe.toString().replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;").replace(/'/g, "&#039;");
 }

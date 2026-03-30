@@ -1,4 +1,5 @@
-// Service Worker — must use importScripts for Firebase compat libraries
+const MAX_SCREENSHOT_WIDTH = 400; // Limit image size to prevent reaching storage limits
+// ... (rest of background.js remains)
 importScripts('./lib/firebase-app.js');
 importScripts('./lib/firebase-auth.js');
 importScripts('./lib/firebase-firestore.js');
@@ -249,7 +250,8 @@ async function quickSave() {
             folderId: quickSavesFolder.id,
             tags: ["quick-save"],
             createdAt: Date.now(),
-            favicon: `https://www.google.com/s2/favicons?domain=${new URL(tab.url).hostname}&sz=32`
+            favicon: `https://www.google.com/s2/favicons?domain=${new URL(tab.url).hostname}&sz=32`,
+            screenshot: await captureTabScreenshot(tab.windowId)
         };
 
         links.push(newLink);
@@ -267,6 +269,17 @@ async function quickSave() {
 
     } catch (err) {
         console.error("Quick save error:", err);
+    }
+}
+
+async function captureTabScreenshot(windowId) {
+    try {
+        // captureVisibleTab returns a dataUrl string
+        const dataUrl = await chrome.tabs.captureVisibleTab(windowId, { format: 'jpeg', quality: 50 });
+        return dataUrl;
+    } catch (e) {
+        console.warn("Screenshot capture skipped:", e);
+        return null;
     }
 }
 
