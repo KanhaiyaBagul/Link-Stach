@@ -20,8 +20,6 @@ console.log("Offscreen: Firebase initialized, setting up listener...");
 
 chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
     console.log("Offscreen received message:", message.action);
-    if (message.target !== 'offscreen') return;
-
     if (message.action === 'signInWithGoogle') {
         const provider = new firebase.auth.GoogleAuthProvider();
         console.log("Offscreen: starting signInWithPopup...");
@@ -40,6 +38,18 @@ chrome.runtime.onMessage.addListener((message, sender, sendResponse) => {
             });
 
         return true; // keep channel open for async sendResponse
+    }
+
+    if (message.action === 'playAudio') {
+        const audio = new Audio(message.source);
+        audio.volume = message.volume || 1.0;
+        audio.play()
+            .then(() => sendResponse({ success: true }))
+            .catch(err => {
+                console.error("Audio playback error:", err);
+                sendResponse({ success: false, error: err.message });
+            });
+        return true;
     }
 });
 

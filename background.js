@@ -197,3 +197,101 @@ chrome.runtime.onMessage.addListener((request, sender, sendResponse) => {
         return true;
     }
 });
+
+// ─── Keyboard Shortcuts ──────────────────────────────────────────────────────
+chrome.commands.onCommand.addListener((command) => {
+    if (command === "quick-save") {
+        quickSave();
+    }
+});
+
+async function quickSave() {
+    try {
+        const tabs = await chrome.tabs.query({ active: true, currentWindow: true });
+        const tab = tabs[0];
+        if (!tab || !tab.url) return;
+
+        const { links = [], folders = [] } = await chrome.storage.local.get(['links', 'folders']);
+
+        // Check if duplicate
+        let normalizedUrl = tab.url;
+        try { normalizedUrl = new URL(tab.url).href; } catch (e) { }
+
+        const isDuplicate = links.some(link => {
+            try { return new URL(link.url).href === normalizedUrl; }
+            catch (e) { return link.url === tab.url; }
+        });
+
+        if (isDuplicate) {
+            chrome.notifications.create({
+                type: 'basic',
+                iconUrl: 'assets/icon128.png',
+                title: 'Already Stashed!',
+                message: 'This link is already in your LinkStash.'
+            });
+            return;
+        }
+
+        // Find or create "Quick Saves" folder
+        const FOLDER_NAME = "Quick Saves";
+        let quickSavesFolder = folders.find(f => f.name === FOLDER_NAME);
+        if (!quickSavesFolder) {
+            quickSavesFolder = { id: self.crypto.randomUUID(), name: FOLDER_NAME, createdAt: Date.now() };
+            folders.push(quickSavesFolder);
+            await chrome.storage.local.set({ folders });
+        }
+
+        const newLink = {
+            id: self.crypto.randomUUID(),
+            url: tab.url,
+            title: tab.title || "Quick Save",
+            notes: "",
+            folderId: quickSavesFolder.id,
+            tags: ["quick-save"],
+            createdAt: Date.now(),
+            favicon: `https://www.google.com/s2/favicons?domain=${new URL(tab.url).hostname}&sz=32`
+        };
+
+        links.push(newLink);
+        await chrome.storage.local.set({ links });
+
+        // Feedback
+        chrome.notifications.create({
+            type: 'basic',
+            iconUrl: 'assets/icon128.png',
+            title: 'Saved to LinkStash',
+            message: `"${newLink.title}" has been saved to Quick Saves.`
+        });
+
+        playSuccessSound();
+
+    } catch (err) {
+        console.error("Quick save error:", err);
+    }
+}
+
+async function playSuccessSound() {
+    const OFFSCREEN_PATH = 'offscreen/offscreen.html';
+
+    // Check if offscreen document already exists
+    const existingContexts = await chrome.runtime.getContexts({
+        contextTypes: ['OFFSCREEN_DOCUMENT'],
+        documentUrls: [chrome.runtime.getURL(OFFSCREEN_PATH)]
+    });
+
+    if (existingContexts.length === 0) {
+        await chrome.offscreen.createDocument({
+            url: OFFSCREEN_PATH,
+            reasons: ['AUDIO_PLAYBACK'],
+            justification: 'Play success sound on quick save'
+        });
+    }
+
+    // Send message to offscreen to play sound
+    chrome.runtime.sendMessage({
+        target: 'offscreen',
+        action: 'playAudio',
+        source: chrome.runtime.getURL('assets/success.mp3'),
+        volume: 0.5
+    });
+}

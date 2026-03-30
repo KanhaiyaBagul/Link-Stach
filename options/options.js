@@ -4,6 +4,7 @@ import Storage from '../js/storage.js';
 document.addEventListener('DOMContentLoaded', () => {
     setupAuthListener();
     setupExportListeners();
+    setupImportListeners();
 });
 
 function setupAuthListener() {
@@ -63,6 +64,68 @@ function setupExportListeners() {
 
         const dataStr = "data:text/csv;charset=utf-8," + encodeURIComponent(csvRows.join('\n'));
         downloadFile(dataStr, "linkstash-export.csv");
+    });
+}
+
+function setupImportListeners() {
+    const importBtn = document.getElementById('import-bookmarks-btn');
+    const statusEl = document.getElementById('import-status');
+    const countEl = document.getElementById('import-count');
+
+    if (!importBtn) return;
+
+    importBtn.addEventListener('click', async () => {
+        const confirmed = confirm("This will import all your browser bookmarks into LinkStash. Folders will be recreated as LinkStash folders. Continue?");
+        if (!confirmed) return;
+
+        importBtn.disabled = true;
+        importBtn.textContent = "Importing...";
+        statusEl.classList.remove('hidden');
+
+        try {
+            const bookmarkTree = await chrome.bookmarks.getTree();
+            let importedCount = 0;
+
+            const traverse = async (nodes, parentFolderId = null) => {
+                for (const node of nodes) {
+                    if (node.url) {
+                        // It's a bookmark
+                        const isDup = await Storage.isDuplicate(node.url);
+                        if (!isDup) {
+                            await Storage.saveLink({
+                                url: node.url,
+                                title: node.title || "Imported Bookmark",
+                                folderId: parentFolderId,
+                                tags: ["imported"]
+                            });
+                            importedCount++;
+                            countEl.textContent = importedCount;
+                        }
+                    } else if (node.children && node.children.length > 0) {
+                        // It's a folder
+                        let currentFolderId = parentFolderId;
+                        // Avoid creating folders for root containers if possible, or just create them
+                        if (node.title && node.id !== "0" && node.id !== "root__") {
+                            const folder = await Storage.saveFolder(node.title);
+                            currentFolderId = folder ? folder.id : parentFolderId;
+                        }
+                        await traverse(node.children, currentFolderId);
+                    }
+                }
+            };
+
+            await traverse(bookmarkTree);
+
+            alert(`Import complete! ${importedCount} new links added.`);
+            importBtn.textContent = "Import Google Bookmarks";
+            importBtn.disabled = false;
+            statusEl.classList.add('hidden');
+
+        } catch (err) {
+            console.error("Import error:", err);
+            alert("Failed to import bookmarks. Make sure you've granted the necessary permissions.");
+            importBtn.disabled = false;
+        }
     });
 }
 
