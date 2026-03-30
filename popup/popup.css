@@ -211,8 +211,13 @@ body {
   flex-direction: column;
   gap: 12px;
 }
-.link-container::-webkit-scrollbar { width: 6px; }
-.link-container::-webkit-scrollbar-thumb { background: var(--surface-hover); border-radius: 4px; }
+.link-container::-webkit-scrollbar { width: 8px; }
+.link-container::-webkit-scrollbar-thumb { 
+  background: var(--surface-hover); 
+  border-radius: 4px;
+  border: 2px solid var(--bg-dark); /* Padding effect */
+}
+.link-container::-webkit-scrollbar-thumb:hover { background: var(--text-secondary); }
 
 .link-card {
   background: var(--bg-sidebar);
@@ -225,6 +230,7 @@ body {
   cursor: pointer;
   position: relative;
   overflow: hidden;
+  flex-shrink: 0; /* Prevents cards from shrinking when list overflows */
 }
 .link-card:hover {
   border-color: var(--border-focus);
