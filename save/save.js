@@ -1,4 +1,5 @@
 import Storage from '../js/storage.js';
+import AIService from '../js/ai-service.js';
 
 document.addEventListener('DOMContentLoaded', async () => {
     // 1. Populate initial data (folder datalist)
@@ -20,6 +21,7 @@ document.addEventListener('DOMContentLoaded', async () => {
         urlInput.value = params.get('url');
         titleInput.value = params.get('title');
         checkDuplicate(urlInput.value);
+        requestAISuggestions(urlInput.value, titleInput.value);
     } else {
         // Opened via toolbar popup
         chrome.tabs.query({ active: true, currentWindow: true }, async (tabs) => {
@@ -32,7 +34,45 @@ document.addEventListener('DOMContentLoaded', async () => {
             urlInput.value = url;
             titleInput.value = title;
             checkDuplicate(url);
+            requestAISuggestions(url, title);
         });
+    }
+
+    async function requestAISuggestions(url, title) {
+        if (!url || url.startsWith('chrome://')) return;
+
+        const aiStatus = document.getElementById('ai-status');
+        const aiTagBadge = document.getElementById('ai-tag-badge');
+        const aiNoteBadge = document.getElementById('ai-note-badge');
+        const tagsInput = document.getElementById('tags');
+        const noteInput = document.getElementById('note');
+
+        try {
+            aiStatus.classList.remove('hidden');
+            
+            // Try to get meta description if available in background or via storage (omitted for brevity, using title/url)
+            const suggestions = await AIService.getSuggestions(url, title);
+
+            if (suggestions) {
+                // Populate tags if user hasn't typed anything yet
+                if (!tagsInput.value.trim() && suggestions.tags) {
+                    tagsInput.value = suggestions.tags.join(', ');
+                    aiTagBadge.classList.remove('hidden');
+                }
+
+                // Populate note if user hasn't typed anything yet
+                if (!noteInput.value.trim() && suggestions.summary) {
+                    noteInput.value = suggestions.summary;
+                    aiNoteBadge.classList.remove('hidden');
+                }
+
+                aiStatus.innerHTML = '<span class="ai-sparkle">✨</span> Suggestions applied!';
+                setTimeout(() => aiStatus.classList.add('hidden'), 3000);
+            }
+        } catch (err) {
+            console.warn('AI Suggestions failed:', err);
+            aiStatus.classList.add('hidden');
+        }
     }
 
     // Duplicate check on input
