@@ -39,6 +39,21 @@
             <button id="login-btn" class="btn btn-primary mt-16">Log In for Cloud Sync</button>
         </div>
 
+        <div class="settings-card">
+            <h3>AI Features</h3>
+            <p class="description">Enable smart auto-tagging and summarization using OpenRouter. Get your API key at <a href="https://openrouter.ai/keys" target="_blank" style="color: var(--accent);">openrouter.ai</a>.</p>
+            
+            <div style="margin-top: 16px;">
+                <label for="ai-api-key" style="display: block; font-size: 14px; margin-bottom: 8px; color: var(--text-secondary);">OpenRouter API Key</label>
+                <input type="password" id="ai-api-key" placeholder="sk-or-v1-..." style="width: 100%; padding: 10px; background: rgba(255,255,255,0.05); border: 1px solid var(--border); border-radius: 8px; color: white;">
+            </div>
+
+            <div class="actions" style="margin-top: 16px; display: flex; align-items: center; gap: 12px;">
+                <button id="save-ai-settings-btn" class="btn btn-primary">Save AI Settings</button>
+                <span id="ai-save-status" style="font-size: 14px; color: var(--success); display: none;">Settings saved!</span>
+            </div>
+        </div>
+
 
         <div class="settings-card">
             <h3>Data Management</h3>

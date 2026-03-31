@@ -5,6 +5,7 @@ document.addEventListener('DOMContentLoaded', () => {
     setupAuthListener();
     setupExportListeners();
     setupImportListeners();
+    setupAISettingsListeners();
 });
 
 function setupAuthListener() {
@@ -126,6 +127,35 @@ function setupImportListeners() {
             alert("Failed to import bookmarks. Make sure you've granted the necessary permissions.");
             importBtn.disabled = false;
         }
+    });
+}
+
+async function setupAISettingsListeners() {
+    const aiKeyInput = document.getElementById('ai-api-key');
+    const saveBtn = document.getElementById('save-ai-settings-btn');
+    const statusEl = document.getElementById('ai-save-status');
+
+    if (!aiKeyInput || !saveBtn) return;
+
+    // Load existing key
+    const settings = await chrome.storage.local.get('ai_settings');
+    if (settings.ai_settings && settings.ai_settings.apiKey) {
+        aiKeyInput.value = settings.ai_settings.apiKey;
+    }
+
+    saveBtn.addEventListener('click', async () => {
+        const apiKey = aiKeyInput.value.trim();
+        await chrome.storage.local.set({
+            ai_settings: {
+                apiKey: apiKey,
+                updatedAt: Date.now()
+            }
+        });
+
+        statusEl.style.display = 'inline';
+        setTimeout(() => {
+            statusEl.style.display = 'none';
+        }, 3000);
     });
 }
 
